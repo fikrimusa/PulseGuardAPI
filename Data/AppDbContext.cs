@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using AlertModel = PulseGuard.Api.Models.Alert;
 using MonitorCheckModel = PulseGuard.Api.Models.MonitorCheck;
 using MonitorModel = PulseGuard.Api.Models.Monitor;
 using UserModel = PulseGuard.Api.Models.User;
@@ -12,6 +13,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<UserModel> Users => Set<UserModel>();
 
     public DbSet<MonitorCheckModel> MonitorChecks => Set<MonitorCheckModel>();
+
+    public DbSet<AlertModel> Alerts => Set<AlertModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +48,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .HasForeignKey(entity => entity.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         monitor.HasMany(entity => entity.Checks)
+            .WithOne(entity => entity.Monitor)
+            .HasForeignKey(entity => entity.MonitorId)
+            .OnDelete(DeleteBehavior.Cascade);
+        monitor.HasMany(entity => entity.Alerts)
             .WithOne(entity => entity.Monitor)
             .HasForeignKey(entity => entity.MonitorId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -110,5 +117,39 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         monitorCheck.Property(entity => entity.ErrorMessage)
             .HasColumnName("error_message")
             .HasMaxLength(2000);
+
+        var alert = modelBuilder.Entity<AlertModel>();
+
+        alert.ToTable("alerts");
+        alert.HasKey(entity => entity.Id);
+        alert.HasIndex(entity => new { entity.MonitorId, entity.Status });
+        alert.Property(entity => entity.Id)
+            .HasColumnName("id")
+            .ValueGeneratedNever();
+        alert.Property(entity => entity.MonitorId)
+            .HasColumnName("monitor_id")
+            .IsRequired();
+        alert.Property(entity => entity.CreatedAt)
+            .HasColumnName("created_at")
+            .HasColumnType("timestamp with time zone")
+            .IsRequired();
+        alert.Property(entity => entity.ResolvedAt)
+            .HasColumnName("resolved_at")
+            .HasColumnType("timestamp with time zone");
+        alert.Property(entity => entity.AcknowledgedAt)
+            .HasColumnName("acknowledged_at")
+            .HasColumnType("timestamp with time zone");
+        alert.Property(entity => entity.Status)
+            .HasColumnName("status")
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired();
+        alert.Property(entity => entity.Message)
+            .HasColumnName("message")
+            .HasMaxLength(2000)
+            .IsRequired();
+        alert.Property(entity => entity.FailureCount)
+            .HasColumnName("failure_count")
+            .IsRequired();
     }
 }

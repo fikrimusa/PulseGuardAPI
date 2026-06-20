@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, and scheduled health checks. Alerting is not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, and persisted alerts. External alert delivery is not implemented yet.
 
 ## Project overview
 
@@ -33,6 +33,9 @@ The following are intentionally not part of the current implementation: Redis, D
 | `PUT` | `/api/monitors/{id}` | Replaces a monitor's editable settings. |
 | `DELETE` | `/api/monitors/{id}` | Deletes a monitor. |
 | `GET` | `/api/monitors/{id}/checks` | Retrieves health-check history for an owned monitor. |
+| `GET` | `/api/alerts` | Lists alerts for monitors owned by the authenticated user. |
+| `GET` | `/api/alerts/{id}` | Retrieves an owned alert. |
+| `PUT` | `/api/alerts/{id}/acknowledge` | Acknowledges an open owned alert. |
 
 Example response:
 
@@ -52,6 +55,7 @@ Swagger UI is available at `/swagger` while the API is running.
 - Register users and issue JWT bearer tokens using hashed passwords.
 - Create, list, retrieve, update, and delete user-owned monitors persisted in PostgreSQL.
 - Run due checks for enabled monitors and persist status, latency, and failure details.
+- Open, acknowledge, and automatically resolve monitor failure alerts.
 - Configure a monitor name, endpoint URL, check interval, and active state.
 
 ### MVP (planned)
@@ -171,6 +175,12 @@ Monitor create and update requests support these health-check settings:
 
 Set `HealthCheckWorker__PollingIntervalSeconds` to change the local polling frequency. This does not override the per-monitor `checkIntervalSeconds` setting.
 
+### Alerts
+
+An alert opens after **three consecutive failed checks** for the same monitor. Only one active alert can exist per monitor: additional failures update its `failureCount` instead of creating duplicates. A successful check automatically changes an `OPEN` or `ACKNOWLEDGED` alert to `RESOLVED`.
+
+Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints return only alerts that belong to the authenticated user's monitors.
+
 ## Project roadmap
 
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
@@ -179,6 +189,7 @@ Set `HealthCheckWorker__PollingIntervalSeconds` to change the local polling freq
 - [x] Add PostgreSQL persistence and the initial EF Core migration.
 - [x] Add JWT authentication and user-owned monitor access.
 - [x] Add scheduled health checks and persisted check history.
+- [x] Add consecutive-failure alerts with acknowledgement and automatic resolution.
 - [ ] Detect repeated failures and create alert records.
 - [ ] Add alert delivery, testing, and deployment tooling.
 

@@ -25,4 +25,6 @@ public sealed class Monitor
     public DateTime UpdatedAtUtc { get; set; }
 
     public ICollection<MonitorCheck> Checks { get; set; } = new List<MonitorCheck>();
+
+    public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
 }
