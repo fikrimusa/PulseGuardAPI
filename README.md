@@ -2,11 +2,11 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, and a user-scoped dashboard summary. External alert delivery is not implemented yet.
+> **Current status:** MVP backend stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, and a user-scoped dashboard summary. External alert delivery is not implemented yet.
 
 ## Project overview
 
-PulseGuard API will provide a backend foundation for defining health monitors, executing checks, storing their outcomes, and exposing a service's current and historical status. The project is deliberately backend-first, with a focus on API design, maintainable structure, and operational concerns.
+PulseGuard API provides a backend foundation for defining health monitors, executing checks, storing their outcomes, and exposing a service's current and historical status.
 
 ## Tech stack
 
@@ -18,7 +18,7 @@ PulseGuard API will provide a backend foundation for defining health monitors, e
 - **Health checks:** Hosted background service using `HttpClientFactory`
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
-The following are intentionally not part of the current implementation: Redis, Docker, background workers, and alert delivery.
+The following are intentionally not part of the current implementation: Redis, Docker, and external alert delivery.
 
 ## Current API
 
@@ -49,9 +49,9 @@ Example response:
 
 Swagger UI is available at `/swagger` while the API is running.
 
-## Planned features
+## Features
 
-### Implemented foundation
+### Implemented MVP features
 
 - Register users and issue JWT bearer tokens using hashed passwords.
 - Create, list, retrieve, update, and delete user-owned monitors persisted in PostgreSQL.
@@ -191,8 +191,12 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add scheduled health checks and persisted check history.
 - [x] Add consecutive-failure alerts with acknowledgement and automatic resolution.
 - [x] Add a user-scoped dashboard summary API.
-- [ ] Add alert delivery, testing, and deployment tooling.
+- [ ] Add Docker support for local development.
+- [ ] Add automated tests for services and API endpoints.
+- [ ] Add external alert delivery via email, webhook, Slack, or Discord.
+- [ ] Add AWS deployment documentation.
+- [ ] Add GitHub Actions CI pipeline.
 
 ## Portfolio purpose
 
-PulseGuard API is being built to demonstrate backend engineering skills relevant to Backend Engineer, Software Engineer, and C# .NET Developer roles. The planned work covers REST API design, layered architecture, background processing, data modelling, reliability-oriented workflows, testing, and production-minded operational design.
+PulseGuard API demonstrates backend engineering skills relevant to Backend Engineer, Software Engineer, and C# .NET Developer roles. The project covers REST API design, layered architecture, background processing, data modelling, reliability-oriented workflows, testing, and production-minded operational design.
