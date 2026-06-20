@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, and in-memory monitor CRUD. Monitor data is lost when the application restarts; persistence, scheduling, and alerting are not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, and PostgreSQL-backed monitor CRUD. Scheduling and alerting are not implemented yet.
 
 ## Project overview
 
@@ -13,17 +13,18 @@ PulseGuard API will provide a backend foundation for defining health monitors, e
 - **Framework:** ASP.NET Core Web API (.NET 8)
 - **Language:** C#
 - **API documentation:** Swagger / OpenAPI via Swashbuckle
+- **Persistence:** Entity Framework Core 8 with the Npgsql PostgreSQL provider
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
-The following are intentionally not part of the current implementation: authentication, PostgreSQL, Redis, Docker, background workers, and alert delivery.
+The following are intentionally not part of the current implementation: authentication, Redis, Docker, background workers, and alert delivery.
 
 ## Current API
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Returns the API status and the current UTC timestamp. |
-| `POST` | `/api/monitors` | Creates an in-memory monitor. |
-| `GET` | `/api/monitors` | Lists in-memory monitors. |
+| `POST` | `/api/monitors` | Creates a persisted monitor. |
+| `GET` | `/api/monitors` | Lists persisted monitors. |
 | `GET` | `/api/monitors/{id}` | Retrieves a monitor by ID. |
 | `PUT` | `/api/monitors/{id}` | Replaces a monitor's editable settings. |
 | `DELETE` | `/api/monitors/{id}` | Deletes a monitor. |
@@ -43,7 +44,7 @@ Swagger UI is available at `/swagger` while the API is running.
 
 ### Implemented foundation
 
-- Create, list, retrieve, update, and delete monitors using in-memory storage.
+- Create, list, retrieve, update, and delete monitors persisted in PostgreSQL.
 - Configure a monitor name, endpoint URL, check interval, and active state.
 
 ### MVP (planned)
@@ -67,6 +68,50 @@ Swagger UI is available at `/swagger` while the API is running.
 ### Prerequisites
 
 - .NET 8 SDK
+- PostgreSQL 14 or later
+
+### Configure PostgreSQL
+
+Create a local database and user:
+
+```bash
+sudo -u postgres psql
+CREATE USER pulseguard_user WITH PASSWORD 'replace-with-a-local-password';
+CREATE DATABASE pulseguard OWNER pulseguard_user;
+\\q
+```
+
+Set the connection string for the current terminal. This overrides the placeholder value in `appsettings.json` and avoids committing a real password:
+
+```bash
+export ConnectionStrings__PulseGuardDatabase='Host=localhost;Port=5432;Database=pulseguard;Username=pulseguard_user;Password=replace-with-a-local-password'
+```
+
+On Ubuntu, PostgreSQL's default local peer authentication can be used instead of a password. After creating a matching PostgreSQL role and database, use the Unix socket connection string:
+
+```bash
+sudo -u postgres createuser --login "$USER"
+sudo -u postgres createdb --owner="$USER" pulseguard
+export ConnectionStrings__PulseGuardDatabase="Host=/var/run/postgresql;Port=5432;Database=pulseguard;Username=$USER"
+```
+
+Install the EF Core CLI tool once (the major version must match EF Core 8):
+
+```bash
+dotnet tool install --global dotnet-ef --version 8.0.11
+```
+
+Apply the committed database migration:
+
+```bash
+dotnet ef database update
+```
+
+Create a new migration after changing an EF Core model:
+
+```bash
+dotnet ef migrations add DescriptiveMigrationName
+```
 
 ### Run the API
 
@@ -92,7 +137,7 @@ curl http://localhost:5054/api/health
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
 - [x] Enable Swagger / OpenAPI documentation.
 - [x] Define the initial monitor model and in-memory CRUD endpoints.
-- [ ] Add a persistence layer and migrations.
+- [x] Add PostgreSQL persistence and the initial EF Core migration.
 - [ ] Add scheduled health checks and uptime history.
 - [ ] Detect repeated failures and create alert records.
 - [ ] Add authentication, alert delivery, testing, and deployment tooling.

@@ -1,65 +1,56 @@
-using System.Collections.Concurrent;
+using PulseGuard.Api.Repositories;
 using MonitorModel = PulseGuard.Api.Models.Monitor;
 
 namespace PulseGuard.Api.Services;
 
-public sealed class MonitorService
+public sealed class MonitorService(MonitorRepository monitorRepository)
 {
-    private readonly ConcurrentDictionary<Guid, MonitorModel> _monitors = new();
-
     public IReadOnlyCollection<MonitorModel> GetAll()
     {
-        return _monitors.Values
-            .OrderByDescending(monitor => monitor.CreatedAtUtc)
-            .ToArray();
+        return monitorRepository.GetAll();
     }
 
     public MonitorModel? GetById(Guid id)
     {
-        return _monitors.GetValueOrDefault(id);
+        return monitorRepository.GetById(id);
     }
 
     public MonitorModel Create(string name, string url, int checkIntervalSeconds, bool isActive)
     {
         var now = DateTime.UtcNow;
-        var monitor = new MonitorModel(
-            Id: Guid.NewGuid(),
-            Name: name.Trim(),
-            Url: url.Trim(),
-            CheckIntervalSeconds: checkIntervalSeconds,
-            IsActive: isActive,
-            CreatedAtUtc: now,
-            UpdatedAtUtc: now);
+        var monitor = new MonitorModel
+        {
+            Id = Guid.NewGuid(),
+            Name = name.Trim(),
+            Url = url.Trim(),
+            CheckIntervalSeconds = checkIntervalSeconds,
+            IsActive = isActive,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        };
 
-        _monitors[monitor.Id] = monitor;
-
-        return monitor;
+        return monitorRepository.Add(monitor);
     }
 
     public MonitorModel? Update(Guid id, string name, string url, int checkIntervalSeconds, bool isActive)
     {
-        while (_monitors.TryGetValue(id, out var current))
+        var monitor = monitorRepository.GetById(id);
+        if (monitor is null)
         {
-            var updated = current with
-            {
-                Name = name.Trim(),
-                Url = url.Trim(),
-                CheckIntervalSeconds = checkIntervalSeconds,
-                IsActive = isActive,
-                UpdatedAtUtc = DateTime.UtcNow
-            };
-
-            if (_monitors.TryUpdate(id, updated, current))
-            {
-                return updated;
-            }
+            return null;
         }
 
-        return null;
+        monitor.Name = name.Trim();
+        monitor.Url = url.Trim();
+        monitor.CheckIntervalSeconds = checkIntervalSeconds;
+        monitor.IsActive = isActive;
+        monitor.UpdatedAtUtc = DateTime.UtcNow;
+
+        return monitorRepository.Update(monitor);
     }
 
     public bool Delete(Guid id)
     {
-        return _monitors.TryRemove(id, out _);
+        return monitorRepository.Delete(id);
     }
 }
