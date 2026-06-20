@@ -5,6 +5,8 @@ public sealed record MonitorResponse(
     string Name,
     string Url,
     int CheckIntervalSeconds,
+    int TimeoutSeconds,
+    int ExpectedStatusCode,
     bool IsActive,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc);

@@ -45,16 +45,25 @@ var connectionString = builder.Configuration.GetConnectionString("PulseGuardData
     ?? throw new InvalidOperationException("Connection string 'PulseGuardDatabase' was not found.");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddHttpClient("MonitorChecks");
 builder.Services.AddScoped<MonitorRepository>();
+builder.Services.AddScoped<MonitorCheckRepository>();
 builder.Services.AddScoped<MonitorService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.Configure<HealthCheckWorkerSettings>(builder.Configuration.GetSection(HealthCheckWorkerSettings.SectionName));
+builder.Services.AddHostedService<HealthCheckWorker>();
 
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT configuration was not found.");
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+{
+    KeyId = "PulseGuard.Api"
+};
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+builder.Services.AddSingleton(jwtSettings);
+builder.Services.AddSingleton(signingKey);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -67,6 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = signingKey,
+            TryAllIssuerSigningKeys = true,
             ClockSkew = TimeSpan.Zero
         };
     });

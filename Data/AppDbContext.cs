@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MonitorCheckModel = PulseGuard.Api.Models.MonitorCheck;
 using MonitorModel = PulseGuard.Api.Models.Monitor;
 using UserModel = PulseGuard.Api.Models.User;
 
@@ -9,6 +10,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<MonitorModel> Monitors => Set<MonitorModel>();
 
     public DbSet<UserModel> Users => Set<UserModel>();
+
+    public DbSet<MonitorCheckModel> MonitorChecks => Set<MonitorCheckModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +44,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .WithMany(entity => entity.Monitors)
             .HasForeignKey(entity => entity.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        monitor.HasMany(entity => entity.Checks)
+            .WithOne(entity => entity.Monitor)
+            .HasForeignKey(entity => entity.MonitorId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         monitor.Property(entity => entity.Id)
             .HasColumnName("id")
@@ -59,6 +66,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         monitor.Property(entity => entity.CheckIntervalSeconds)
             .HasColumnName("check_interval_seconds")
             .IsRequired();
+        monitor.Property(entity => entity.TimeoutSeconds)
+            .HasColumnName("timeout_seconds")
+            .IsRequired();
+        monitor.Property(entity => entity.ExpectedStatusCode)
+            .HasColumnName("expected_status_code")
+            .IsRequired();
         monitor.Property(entity => entity.IsActive)
             .HasColumnName("is_active")
             .IsRequired();
@@ -70,5 +83,32 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .HasColumnName("updated_at_utc")
             .HasColumnType("timestamp with time zone")
             .IsRequired();
+
+        var monitorCheck = modelBuilder.Entity<MonitorCheckModel>();
+
+        monitorCheck.ToTable("monitor_checks");
+        monitorCheck.HasKey(entity => entity.Id);
+        monitorCheck.HasIndex(entity => new { entity.MonitorId, entity.CheckedAt });
+        monitorCheck.Property(entity => entity.Id)
+            .HasColumnName("id")
+            .ValueGeneratedNever();
+        monitorCheck.Property(entity => entity.MonitorId)
+            .HasColumnName("monitor_id")
+            .IsRequired();
+        monitorCheck.Property(entity => entity.CheckedAt)
+            .HasColumnName("checked_at")
+            .HasColumnType("timestamp with time zone")
+            .IsRequired();
+        monitorCheck.Property(entity => entity.IsSuccess)
+            .HasColumnName("is_success")
+            .IsRequired();
+        monitorCheck.Property(entity => entity.StatusCode)
+            .HasColumnName("status_code");
+        monitorCheck.Property(entity => entity.ResponseTimeMs)
+            .HasColumnName("response_time_ms")
+            .IsRequired();
+        monitorCheck.Property(entity => entity.ErrorMessage)
+            .HasColumnName("error_message")
+            .HasMaxLength(2000);
     }
 }

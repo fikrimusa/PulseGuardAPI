@@ -15,7 +15,14 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
         return monitorRepository.GetById(id, userId);
     }
 
-    public MonitorModel Create(Guid userId, string name, string url, int checkIntervalSeconds, bool isActive)
+    public MonitorModel Create(
+        Guid userId,
+        string name,
+        string url,
+        int checkIntervalSeconds,
+        int timeoutSeconds,
+        int expectedStatusCode,
+        bool isActive)
     {
         var now = DateTime.UtcNow;
         var monitor = new MonitorModel
@@ -25,6 +32,8 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
             Name = name.Trim(),
             Url = url.Trim(),
             CheckIntervalSeconds = checkIntervalSeconds,
+            TimeoutSeconds = timeoutSeconds,
+            ExpectedStatusCode = expectedStatusCode,
             IsActive = isActive,
             CreatedAtUtc = now,
             UpdatedAtUtc = now
@@ -33,7 +42,15 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
         return monitorRepository.Add(monitor);
     }
 
-    public MonitorModel? Update(Guid id, Guid userId, string name, string url, int checkIntervalSeconds, bool isActive)
+    public MonitorModel? Update(
+        Guid id,
+        Guid userId,
+        string name,
+        string url,
+        int checkIntervalSeconds,
+        int timeoutSeconds,
+        int expectedStatusCode,
+        bool isActive)
     {
         var monitor = monitorRepository.GetById(id, userId);
         if (monitor is null)
@@ -44,6 +61,8 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
         monitor.Name = name.Trim();
         monitor.Url = url.Trim();
         monitor.CheckIntervalSeconds = checkIntervalSeconds;
+        monitor.TimeoutSeconds = timeoutSeconds;
+        monitor.ExpectedStatusCode = expectedStatusCode;
         monitor.IsActive = isActive;
         monitor.UpdatedAtUtc = DateTime.UtcNow;
 

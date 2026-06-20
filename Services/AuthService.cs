@@ -1,9 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PulseGuard.Api.Configuration;
 using PulseGuard.Api.Data;
@@ -15,9 +13,11 @@ namespace PulseGuard.Api.Services;
 public sealed class AuthService(
     AppDbContext dbContext,
     IPasswordHasher<User> passwordHasher,
-    IOptions<JwtSettings> jwtOptions)
+    JwtSettings jwtSettings,
+    SymmetricSecurityKey signingKey)
 {
-    private readonly JwtSettings _jwtSettings = jwtOptions.Value;
+    private readonly JwtSettings _jwtSettings = jwtSettings;
+    private readonly SymmetricSecurityKey _signingKey = signingKey;
 
     public AuthResponse? Register(RegisterRequest request)
     {
@@ -63,7 +63,7 @@ public sealed class AuthService(
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiresInMinutes);
         var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
+            _signingKey,
             SecurityAlgorithms.HmacSha256);
         var claims = new[]
         {

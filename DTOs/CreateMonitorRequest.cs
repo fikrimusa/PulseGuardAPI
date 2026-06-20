@@ -16,5 +16,11 @@ public sealed class CreateMonitorRequest
     [Range(10, 86_400)]
     public int CheckIntervalSeconds { get; init; } = 60;
 
+    [Range(1, 120)]
+    public int TimeoutSeconds { get; init; } = 10;
+
+    [Range(100, 599)]
+    public int ExpectedStatusCode { get; init; } = 200;
+
     public bool IsActive { get; init; } = true;
 }

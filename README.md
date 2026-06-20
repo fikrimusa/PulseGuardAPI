@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, and JWT authentication. Scheduling and alerting are not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, and scheduled health checks. Alerting is not implemented yet.
 
 ## Project overview
 
@@ -15,6 +15,7 @@ PulseGuard API will provide a backend foundation for defining health monitors, e
 - **API documentation:** Swagger / OpenAPI via Swashbuckle
 - **Persistence:** Entity Framework Core 8 with the Npgsql PostgreSQL provider
 - **Authentication:** JWT bearer tokens with ASP.NET Core password hashing
+- **Health checks:** Hosted background service using `HttpClientFactory`
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
 The following are intentionally not part of the current implementation: Redis, Docker, background workers, and alert delivery.
@@ -31,6 +32,7 @@ The following are intentionally not part of the current implementation: Redis, D
 | `GET` | `/api/monitors/{id}` | Retrieves a monitor by ID. |
 | `PUT` | `/api/monitors/{id}` | Replaces a monitor's editable settings. |
 | `DELETE` | `/api/monitors/{id}` | Deletes a monitor. |
+| `GET` | `/api/monitors/{id}/checks` | Retrieves health-check history for an owned monitor. |
 
 Example response:
 
@@ -49,11 +51,11 @@ Swagger UI is available at `/swagger` while the API is running.
 
 - Register users and issue JWT bearer tokens using hashed passwords.
 - Create, list, retrieve, update, and delete user-owned monitors persisted in PostgreSQL.
+- Run due checks for enabled monitors and persist status, latency, and failure details.
 - Configure a monitor name, endpoint URL, check interval, and active state.
 
 ### MVP (planned)
 
-- Execute scheduled checks and retain uptime and response-time history.
 - Expose current monitor status and recent check results through REST endpoints.
 - Detect repeated failures and create alert records.
 
@@ -152,6 +154,23 @@ curl http://localhost:5054/api/health
 4. Click **Authorize**, enter the token, and confirm.
 5. Call the protected `/api/monitors` endpoints. Each user can access only their own monitors.
 
+### Health checks
+
+The background worker starts with the API. It polls every 10 seconds by default and performs a check only when an enabled monitor's `checkIntervalSeconds` is due. Each check sends an HTTP `GET` request and compares its response status with `expectedStatusCode`.
+
+Monitor create and update requests support these health-check settings:
+
+```json
+{
+  "checkIntervalSeconds": 60,
+  "timeoutSeconds": 10,
+  "expectedStatusCode": 200,
+  "isActive": true
+}
+```
+
+Set `HealthCheckWorker__PollingIntervalSeconds` to change the local polling frequency. This does not override the per-monitor `checkIntervalSeconds` setting.
+
 ## Project roadmap
 
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
@@ -159,7 +178,7 @@ curl http://localhost:5054/api/health
 - [x] Define the initial monitor model and in-memory CRUD endpoints.
 - [x] Add PostgreSQL persistence and the initial EF Core migration.
 - [x] Add JWT authentication and user-owned monitor access.
-- [ ] Add scheduled health checks and uptime history.
+- [x] Add scheduled health checks and persisted check history.
 - [ ] Detect repeated failures and create alert records.
 - [ ] Add alert delivery, testing, and deployment tooling.
 

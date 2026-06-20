@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PulseGuard.Api.DTOs;
+using PulseGuard.Api.Repositories;
 using PulseGuard.Api.Services;
 using MonitorModel = PulseGuard.Api.Models.Monitor;
 
@@ -10,7 +11,9 @@ namespace PulseGuard.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/monitors")]
-public sealed class MonitorsController(MonitorService monitorService) : ControllerBase
+public sealed class MonitorsController(
+    MonitorService monitorService,
+    MonitorCheckRepository monitorCheckRepository) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<MonitorResponse>), StatusCodes.Status200OK)]
@@ -39,6 +42,8 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
             request.Name,
             request.Url,
             request.CheckIntervalSeconds,
+            request.TimeoutSeconds,
+            request.ExpectedStatusCode,
             request.IsActive);
 
         var response = ToResponse(monitor);
@@ -58,6 +63,8 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
             request.Name,
             request.Url,
             request.CheckIntervalSeconds,
+            request.TimeoutSeconds,
+            request.ExpectedStatusCode,
             request.IsActive);
 
         return monitor is null ? NotFound() : Ok(ToResponse(monitor));
@@ -69,6 +76,29 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     public IActionResult Delete(Guid id)
     {
         return monitorService.Delete(id, GetUserId()) ? NoContent() : NotFound();
+    }
+
+    [HttpGet("{id:guid}/checks")]
+    [ProducesResponseType(typeof(IEnumerable<MonitorCheckResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult<IEnumerable<MonitorCheckResponse>> GetChecks(Guid id)
+    {
+        var monitor = monitorService.GetById(id, GetUserId());
+        if (monitor is null)
+        {
+            return NotFound();
+        }
+
+        var checks = monitorCheckRepository.GetForMonitor(id).Select(check => new MonitorCheckResponse(
+            check.Id,
+            check.MonitorId,
+            check.CheckedAt,
+            check.IsSuccess,
+            check.StatusCode,
+            check.ResponseTimeMs,
+            check.ErrorMessage));
+
+        return Ok(checks);
     }
 
     private Guid GetUserId()
@@ -83,6 +113,8 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
             monitor.Name,
             monitor.Url,
             monitor.CheckIntervalSeconds,
+            monitor.TimeoutSeconds,
+            monitor.ExpectedStatusCode,
             monitor.IsActive,
             monitor.CreatedAtUtc,
             monitor.UpdatedAtUtc);

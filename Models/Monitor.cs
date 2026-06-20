@@ -14,9 +14,15 @@ public sealed class Monitor
 
     public int CheckIntervalSeconds { get; set; }
 
+    public int TimeoutSeconds { get; set; }
+
+    public int ExpectedStatusCode { get; set; }
+
     public bool IsActive { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 
     public DateTime UpdatedAtUtc { get; set; }
+
+    public ICollection<MonitorCheck> Checks { get; set; } = new List<MonitorCheck>();
 }
