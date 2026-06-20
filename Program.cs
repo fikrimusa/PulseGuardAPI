@@ -18,8 +18,13 @@ builder.Services.AddScoped<MonitorService>();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.InjectJavascript("/swagger/hide-response-documentation.js");
+});
 
 app.UseAuthorization();
 
