@@ -1,8 +1,11 @@
+using PulseGuard.Api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<MonitorService>();
 
 var app = builder.Build();
 

@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. This repository currently provides a health endpoint and Swagger UI only. All monitoring, persistence, and alerting capabilities below are planned; they are not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, and in-memory monitor CRUD. Monitor data is lost when the application restarts; persistence, scheduling, and alerting are not implemented yet.
 
 ## Project overview
 
@@ -22,6 +22,11 @@ The following are intentionally not part of the current implementation: authenti
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Returns the API status and the current UTC timestamp. |
+| `POST` | `/api/monitors` | Creates an in-memory monitor. |
+| `GET` | `/api/monitors` | Lists in-memory monitors. |
+| `GET` | `/api/monitors/{id}` | Retrieves a monitor by ID. |
+| `PUT` | `/api/monitors/{id}` | Replaces a monitor's editable settings. |
+| `DELETE` | `/api/monitors/{id}` | Deletes a monitor. |
 
 Example response:
 
@@ -36,10 +41,13 @@ Swagger UI is available at `/swagger` while the API is running.
 
 ## Planned features
 
-### MVP
+### Implemented foundation
 
-- Create and manage HTTP health monitors.
-- Configure endpoint URLs, timeouts, expected HTTP status codes, and check intervals.
+- Create, list, retrieve, update, and delete monitors using in-memory storage.
+- Configure a monitor name, endpoint URL, check interval, and active state.
+
+### MVP (planned)
+
 - Execute scheduled checks and retain uptime and response-time history.
 - Expose current monitor status and recent check results through REST endpoints.
 - Detect repeated failures and create alert records.
@@ -83,9 +91,8 @@ curl http://localhost:5054/api/health
 
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
 - [x] Enable Swagger / OpenAPI documentation.
-- [ ] Define monitor, check-result, and alert domain models.
+- [x] Define the initial monitor model and in-memory CRUD endpoints.
 - [ ] Add a persistence layer and migrations.
-- [ ] Implement monitor-management endpoints.
 - [ ] Add scheduled health checks and uptime history.
 - [ ] Detect repeated failures and create alert records.
 - [ ] Add authentication, alert delivery, testing, and deployment tooling.
