@@ -5,22 +5,23 @@ namespace PulseGuard.Api.Services;
 
 public sealed class MonitorService(MonitorRepository monitorRepository)
 {
-    public IReadOnlyCollection<MonitorModel> GetAll()
+    public IReadOnlyCollection<MonitorModel> GetAll(Guid userId)
     {
-        return monitorRepository.GetAll();
+        return monitorRepository.GetAll(userId);
     }
 
-    public MonitorModel? GetById(Guid id)
+    public MonitorModel? GetById(Guid id, Guid userId)
     {
-        return monitorRepository.GetById(id);
+        return monitorRepository.GetById(id, userId);
     }
 
-    public MonitorModel Create(string name, string url, int checkIntervalSeconds, bool isActive)
+    public MonitorModel Create(Guid userId, string name, string url, int checkIntervalSeconds, bool isActive)
     {
         var now = DateTime.UtcNow;
         var monitor = new MonitorModel
         {
             Id = Guid.NewGuid(),
+            UserId = userId,
             Name = name.Trim(),
             Url = url.Trim(),
             CheckIntervalSeconds = checkIntervalSeconds,
@@ -32,9 +33,9 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
         return monitorRepository.Add(monitor);
     }
 
-    public MonitorModel? Update(Guid id, string name, string url, int checkIntervalSeconds, bool isActive)
+    public MonitorModel? Update(Guid id, Guid userId, string name, string url, int checkIntervalSeconds, bool isActive)
     {
-        var monitor = monitorRepository.GetById(id);
+        var monitor = monitorRepository.GetById(id, userId);
         if (monitor is null)
         {
             return null;
@@ -49,8 +50,8 @@ public sealed class MonitorService(MonitorRepository monitorRepository)
         return monitorRepository.Update(monitor);
     }
 
-    public bool Delete(Guid id)
+    public bool Delete(Guid id, Guid userId)
     {
-        return monitorRepository.Delete(id);
+        return monitorRepository.Delete(id, userId);
     }
 }

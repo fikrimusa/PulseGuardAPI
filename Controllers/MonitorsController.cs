@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PulseGuard.Api.DTOs;
 using PulseGuard.Api.Services;
@@ -6,6 +8,7 @@ using MonitorModel = PulseGuard.Api.Models.Monitor;
 namespace PulseGuard.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/monitors")]
 public sealed class MonitorsController(MonitorService monitorService) : ControllerBase
 {
@@ -13,7 +16,7 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     [ProducesResponseType(typeof(IEnumerable<MonitorResponse>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<MonitorResponse>> GetAll()
     {
-        return Ok(monitorService.GetAll().Select(ToResponse));
+        return Ok(monitorService.GetAll(GetUserId()).Select(ToResponse));
     }
 
     [HttpGet("{id:guid}")]
@@ -21,7 +24,7 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<MonitorResponse> GetById(Guid id)
     {
-        var monitor = monitorService.GetById(id);
+        var monitor = monitorService.GetById(id, GetUserId());
 
         return monitor is null ? NotFound() : Ok(ToResponse(monitor));
     }
@@ -32,6 +35,7 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     public ActionResult<MonitorResponse> Create(CreateMonitorRequest request)
     {
         var monitor = monitorService.Create(
+            GetUserId(),
             request.Name,
             request.Url,
             request.CheckIntervalSeconds,
@@ -50,6 +54,7 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     {
         var monitor = monitorService.Update(
             id,
+            GetUserId(),
             request.Name,
             request.Url,
             request.CheckIntervalSeconds,
@@ -63,7 +68,12 @@ public sealed class MonitorsController(MonitorService monitorService) : Controll
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult Delete(Guid id)
     {
-        return monitorService.Delete(id) ? NoContent() : NotFound();
+        return monitorService.Delete(id, GetUserId()) ? NoContent() : NotFound();
+    }
+
+    private Guid GetUserId()
+    {
+        return Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 
     private static MonitorResponse ToResponse(MonitorModel monitor)

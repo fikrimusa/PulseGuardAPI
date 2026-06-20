@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, and PostgreSQL-backed monitor CRUD. Scheduling and alerting are not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, and JWT authentication. Scheduling and alerting are not implemented yet.
 
 ## Project overview
 
@@ -14,15 +14,18 @@ PulseGuard API will provide a backend foundation for defining health monitors, e
 - **Language:** C#
 - **API documentation:** Swagger / OpenAPI via Swashbuckle
 - **Persistence:** Entity Framework Core 8 with the Npgsql PostgreSQL provider
+- **Authentication:** JWT bearer tokens with ASP.NET Core password hashing
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
-The following are intentionally not part of the current implementation: authentication, Redis, Docker, background workers, and alert delivery.
+The following are intentionally not part of the current implementation: Redis, Docker, background workers, and alert delivery.
 
 ## Current API
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Returns the API status and the current UTC timestamp. |
+| `POST` | `/api/auth/register` | Creates a user account and returns a JWT. |
+| `POST` | `/api/auth/login` | Authenticates a user and returns a JWT. |
 | `POST` | `/api/monitors` | Creates a persisted monitor. |
 | `GET` | `/api/monitors` | Lists persisted monitors. |
 | `GET` | `/api/monitors/{id}` | Retrieves a monitor by ID. |
@@ -44,7 +47,8 @@ Swagger UI is available at `/swagger` while the API is running.
 
 ### Implemented foundation
 
-- Create, list, retrieve, update, and delete monitors persisted in PostgreSQL.
+- Register users and issue JWT bearer tokens using hashed passwords.
+- Create, list, retrieve, update, and delete user-owned monitors persisted in PostgreSQL.
 - Configure a monitor name, endpoint URL, check interval, and active state.
 
 ### MVP (planned)
@@ -55,8 +59,6 @@ Swagger UI is available at `/swagger` while the API is running.
 
 ### Future features
 
-- Authentication and user-owned monitors.
-- PostgreSQL persistence and schema migrations.
 - Background workers for scheduled checks.
 - Alert delivery through email, webhooks, Slack, or Discord.
 - Redis-backed caching or job coordination where justified.
@@ -78,7 +80,7 @@ Create a local database and user:
 sudo -u postgres psql
 CREATE USER pulseguard_user WITH PASSWORD 'replace-with-a-local-password';
 CREATE DATABASE pulseguard OWNER pulseguard_user;
-\\q
+\q
 ```
 
 Set the connection string for the current terminal. This overrides the placeholder value in `appsettings.json` and avoids committing a real password:
@@ -94,6 +96,16 @@ sudo -u postgres createuser --login "$USER"
 sudo -u postgres createdb --owner="$USER" pulseguard
 export ConnectionStrings__PulseGuardDatabase="Host=/var/run/postgresql;Port=5432;Database=pulseguard;Username=$USER"
 ```
+
+### Configure JWT
+
+`appsettings.json` contains a development-only JWT key so the project can run locally. Override it for any environment that is shared or deployed:
+
+```bash
+export Jwt__Key="$(openssl rand -base64 48)"
+```
+
+Do not commit a real JWT signing key.
 
 Install the EF Core CLI tool once (the major version must match EF Core 8):
 
@@ -132,15 +144,24 @@ To call the health endpoint from a terminal:
 curl http://localhost:5054/api/health
 ```
 
+### Authenticate in Swagger
+
+1. Open `http://localhost:5054/swagger`.
+2. Call `POST /api/auth/register` with an email and a password of at least eight characters.
+3. Copy `accessToken` from the response.
+4. Click **Authorize**, enter the token, and confirm.
+5. Call the protected `/api/monitors` endpoints. Each user can access only their own monitors.
+
 ## Project roadmap
 
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
 - [x] Enable Swagger / OpenAPI documentation.
 - [x] Define the initial monitor model and in-memory CRUD endpoints.
 - [x] Add PostgreSQL persistence and the initial EF Core migration.
+- [x] Add JWT authentication and user-owned monitor access.
 - [ ] Add scheduled health checks and uptime history.
 - [ ] Detect repeated failures and create alert records.
-- [ ] Add authentication, alert delivery, testing, and deployment tooling.
+- [ ] Add alert delivery, testing, and deployment tooling.
 
 ## Portfolio purpose
 
