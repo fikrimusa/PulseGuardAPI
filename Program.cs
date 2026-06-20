@@ -53,6 +53,7 @@ builder.Services.AddScoped<MonitorCheckRepository>();
 builder.Services.AddScoped<AlertRepository>();
 builder.Services.AddScoped<MonitorService>();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.Configure<HealthCheckWorkerSettings>(builder.Configuration.GetSection(HealthCheckWorkerSettings.SectionName));

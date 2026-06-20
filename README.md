@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, and persisted alerts. External alert delivery is not implemented yet.
+> **Current status:** Foundation stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, and a user-scoped dashboard summary. External alert delivery is not implemented yet.
 
 ## Project overview
 
@@ -36,6 +36,7 @@ The following are intentionally not part of the current implementation: Redis, D
 | `GET` | `/api/alerts` | Lists alerts for monitors owned by the authenticated user. |
 | `GET` | `/api/alerts/{id}` | Retrieves an owned alert. |
 | `PUT` | `/api/alerts/{id}/acknowledge` | Acknowledges an open owned alert. |
+| `GET` | `/api/dashboard/summary` | Returns the authenticated user's monitor, alert, and recent-check summary. |
 
 Example response:
 
@@ -56,16 +57,11 @@ Swagger UI is available at `/swagger` while the API is running.
 - Create, list, retrieve, update, and delete user-owned monitors persisted in PostgreSQL.
 - Run due checks for enabled monitors and persist status, latency, and failure details.
 - Open, acknowledge, and automatically resolve monitor failure alerts.
+- Summarise monitor health, alert counts, and recent activity for the authenticated user.
 - Configure a monitor name, endpoint URL, check interval, and active state.
-
-### MVP (planned)
-
-- Expose current monitor status and recent check results through REST endpoints.
-- Detect repeated failures and create alert records.
 
 ### Future features
 
-- Background workers for scheduled checks.
 - Alert delivery through email, webhooks, Slack, or Discord.
 - Redis-backed caching or job coordination where justified.
 - Docker-based local and deployment environments.
@@ -181,6 +177,10 @@ An alert opens after **three consecutive failed checks** for the same monitor. O
 
 Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints return only alerts that belong to the authenticated user's monitors.
 
+### Dashboard summary
+
+`GET /api/dashboard/summary` returns counts for the authenticated user's monitors and alerts, the latest status of each monitor, average response time from the latest checks, and up to ten recent alerts and checks. A monitor is `UNKNOWN` until it has a check result.
+
 ## Project roadmap
 
 - [x] Create ASP.NET Core Web API foundation and health endpoint.
@@ -190,7 +190,7 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add JWT authentication and user-owned monitor access.
 - [x] Add scheduled health checks and persisted check history.
 - [x] Add consecutive-failure alerts with acknowledgement and automatic resolution.
-- [ ] Detect repeated failures and create alert records.
+- [x] Add a user-scoped dashboard summary API.
 - [ ] Add alert delivery, testing, and deployment tooling.
 
 ## Portfolio purpose
