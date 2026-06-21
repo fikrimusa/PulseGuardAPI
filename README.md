@@ -25,6 +25,62 @@ PulseGuard API provides a backend foundation for defining health monitors, execu
 
 The following are intentionally not part of the current implementation: Redis and external alert delivery.
 
+## Architecture overview
+
+```mermaid
+flowchart LR
+    Client[Swagger or API client] --> Controllers[ASP.NET Core controllers]
+    Controllers --> Services[Application services]
+    Services --> Repositories[Repositories]
+    Repositories --> DbContext[EF Core AppDbContext]
+    DbContext --> Database[(PostgreSQL)]
+
+    Worker[Health check background worker] --> HttpClient[HttpClientFactory]
+    HttpClient --> Endpoints[Monitored websites and APIs]
+    Worker --> AlertState[Alert state service]
+    Worker --> DbContext
+    AlertState --> DbContext
+```
+
+### How the architecture works
+
+The diagram has two main flows: requests made by a user and automatic checks made by the application.
+
+#### API request flow
+
+For example, when an authenticated user creates a monitor from Swagger:
+
+1. **Swagger or an API client** sends an HTTP request such as `POST /api/monitors`.
+2. An ASP.NET Core **controller** receives the request. Controllers are responsible for HTTP concerns: routes, request validation, response status codes, and authentication requirements.
+3. The controller passes the work to an application **service**. Services contain the business rules, such as ensuring that a user can access only their own monitors.
+4. The service uses a **repository** to read or write monitor, alert, or check data.
+5. The repository uses EF Core's **`AppDbContext`**, which converts C# queries and entities into SQL.
+6. **PostgreSQL** stores the persistent data: users, monitors, monitor checks, and alerts.
+
+This separation keeps HTTP code, business rules, and database access from being mixed together in one controller.
+
+#### Automatic health-check flow
+
+The hosted **health-check background worker** starts when the API starts. It is not triggered by Swagger and does not need a user request.
+
+1. The worker finds enabled monitors whose `checkIntervalSeconds` is due.
+2. It uses **`HttpClientFactory`** to send an HTTP `GET` request to each monitored website or API URL.
+3. The monitored endpoint returns a response, such as HTTP `200`, `404`, `500`, or a timeout/connection error.
+4. The worker compares the outcome with the monitor's expected status code and timeout settings.
+5. It saves a `MonitorCheck` result through `AppDbContext`, including success/failure, status code, response time, and any error message.
+
+#### Alert state flow
+
+After each health check, the worker passes the result to the **alert-state service**:
+
+1. The service counts the monitor's most recent consecutive failures.
+2. At three consecutive failures, it creates one `OPEN` alert. Further failures update that same alert instead of creating duplicates.
+3. A user can acknowledge an open alert, changing it to `ACKNOWLEDGED`.
+4. When a later health check succeeds, an `OPEN` or `ACKNOWLEDGED` alert changes to `RESOLVED` automatically.
+5. Each alert-state change is saved to PostgreSQL through `AppDbContext`.
+
+In short: users manage monitoring settings through the API, while the background worker continuously checks those settings and records the system's health automatically.
+
 ## Current API
 
 | Method | Endpoint | Description |
