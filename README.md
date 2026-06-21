@@ -4,7 +4,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** MVP backend stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, a user-scoped dashboard summary, and Docker-based local development. External alert delivery is not implemented yet.
+> **Current status:** MVP backend stage. PulseGuard API includes Swagger, PostgreSQL persistence, JWT authentication, user-owned monitors, scheduled health checks, persisted alerts, a user-scoped dashboard, Docker Compose local development, automated tests, GitHub Actions CI, and a manual AWS EC2 deployment guide. External alert delivery and production deployment automation are not implemented yet.
 
 ## Project overview
 
@@ -18,6 +18,9 @@ PulseGuard API provides a backend foundation for defining health monitors, execu
 - **Persistence:** Entity Framework Core 8 with the Npgsql PostgreSQL provider
 - **Authentication:** JWT bearer tokens with ASP.NET Core password hashing
 - **Health checks:** Hosted background service using `HttpClientFactory`
+- **Containerisation:** Docker and Docker Compose
+- **Testing:** xUnit, FluentAssertions, ASP.NET Core integration testing, and EF Core InMemory
+- **Continuous integration:** GitHub Actions
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
 The following are intentionally not part of the current implementation: Redis and external alert delivery.
@@ -65,12 +68,16 @@ See the [AWS EC2 deployment plan](docs/aws-deployment.md) for a beginner-friendl
 - Open, acknowledge, and automatically resolve monitor failure alerts.
 - Summarise monitor health, alert counts, and recent activity for the authenticated user.
 - Configure a monitor name, endpoint URL, check interval, and active state.
+- Run automated unit and integration tests for authentication, ownership, alert state changes, and dashboard summaries.
+- Build and test the solution automatically on pushes and pull requests to `main`.
+- Document a manual AWS EC2 deployment using Docker Compose, with a future RDS migration path.
 
 ### Future features
 
 - Alert delivery through email, webhooks, Slack, or Discord.
 - Redis-backed caching or job coordination where justified.
-- Docker-based local and deployment environments.
+- HTTPS through a reverse proxy and production deployment automation.
+- Managed AWS database infrastructure with Amazon RDS.
 - Uptime reporting, performance summaries, teams, and role-based access.
 
 ## How to run locally
@@ -282,4 +289,4 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 
 ## Portfolio purpose
 
-PulseGuard API demonstrates backend engineering skills relevant to Backend Engineer, Software Engineer, and C# .NET Developer roles. The project covers REST API design, layered architecture, background processing, data modelling, reliability-oriented workflows, testing, and production-minded operational design.
+PulseGuard API demonstrates backend engineering skills relevant to Backend Engineer, Software Engineer, and C# .NET Developer roles. The project covers REST API design, layered architecture, PostgreSQL data modelling, JWT security, background processing, reliability-oriented alert workflows, testing, CI, Docker-based local development, and production-minded deployment planning.
