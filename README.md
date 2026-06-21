@@ -51,6 +51,10 @@ Example response:
 
 Swagger UI is available at `/swagger` while the API is running.
 
+## Deployment documentation
+
+See the [AWS EC2 deployment plan](docs/aws-deployment.md) for a beginner-friendly, manual Docker Compose deployment guide. It documents the required AWS resources, environment variables, security-group rules, migrations, and a future RDS path; it does not add deployment automation.
+
 ## Features
 
 ### Implemented MVP features
@@ -274,8 +278,7 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add Docker support for local development.
 - [x] Add automated tests for services and API endpoints.
 - [x] Add GitHub Actions CI pipeline.
-- [ ] Add external alert delivery via email, webhook, Slack, or Discord.
-- [ ] Add AWS deployment documentation.
+- [x] Add AWS deployment documentation.
 
 ## Portfolio purpose
 
