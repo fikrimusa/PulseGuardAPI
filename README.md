@@ -1,5 +1,7 @@
 # PulseGuard API
 
+[![Continuous Integration](https://github.com/fikrimusa/PulseGuardAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/fikrimusa/PulseGuardAPI/actions/workflows/ci.yml)
+
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
 > **Current status:** MVP backend stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, a user-scoped dashboard summary, and Docker-based local development. External alert delivery is not implemented yet.
@@ -271,9 +273,9 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add a user-scoped dashboard summary API.
 - [x] Add Docker support for local development.
 - [x] Add automated tests for services and API endpoints.
+- [x] Add GitHub Actions CI pipeline.
 - [ ] Add external alert delivery via email, webhook, Slack, or Discord.
 - [ ] Add AWS deployment documentation.
-- [ ] Add GitHub Actions CI pipeline.
 
 ## Portfolio purpose
 
