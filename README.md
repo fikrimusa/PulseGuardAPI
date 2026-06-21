@@ -2,7 +2,7 @@
 
 PulseGuard API is an ASP.NET Core Web API portfolio project for monitoring website and API health endpoints. Its intended responsibility is to record uptime history and identify repeated check failures so they can become actionable alerts.
 
-> **Current status:** MVP backend stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, and a user-scoped dashboard summary. External alert delivery is not implemented yet.
+> **Current status:** MVP backend stage. The API provides a health endpoint, Swagger UI, PostgreSQL-backed monitor CRUD, JWT authentication, scheduled health checks, persisted alerts, a user-scoped dashboard summary, and Docker-based local development. External alert delivery is not implemented yet.
 
 ## Project overview
 
@@ -18,7 +18,7 @@ PulseGuard API provides a backend foundation for defining health monitors, execu
 - **Health checks:** Hosted background service using `HttpClientFactory`
 - **Architecture:** Controller, service, repository, data, model, DTO, and configuration layers
 
-The following are intentionally not part of the current implementation: Redis, Docker, and external alert delivery.
+The following are intentionally not part of the current implementation: Redis and external alert delivery.
 
 ## Current API
 
@@ -127,6 +127,58 @@ Create a new migration after changing an EF Core model:
 dotnet ef migrations add DescriptiveMigrationName
 ```
 
+### Run with Docker
+
+#### Prerequisites
+
+- Docker Engine with either the Docker Compose plugin (`docker compose`) or the legacy CLI (`docker-compose`)
+
+Start the API and PostgreSQL containers:
+
+```bash
+docker compose up --build
+```
+
+For Docker Compose 1.x, use the equivalent command:
+
+```bash
+docker-compose up --build
+```
+
+The API uses the Compose service name `postgres` to connect to PostgreSQL. PostgreSQL is exposed on host port `5433` to avoid conflicts with a local PostgreSQL instance on port `5432`.
+
+Apply EF Core migrations from the host after the containers are running:
+
+```bash
+ConnectionStrings__PulseGuardDatabase='Host=localhost;Port=5433;Database=pulseguard;Username=pulseguard;Password=pulseguard_dev_password' dotnet ef database update
+```
+
+Open Swagger at `http://localhost:8080/swagger`.
+
+Stop the containers:
+
+```bash
+docker compose down
+```
+
+For Docker Compose 1.x:
+
+```bash
+docker-compose down
+```
+
+To also delete the Docker PostgreSQL volume and all local container data:
+
+```bash
+docker compose down --volumes
+```
+
+For Docker Compose 1.x:
+
+```bash
+docker-compose down -v
+```
+
 ### Run the API
 
 ```bash
@@ -191,7 +243,7 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add scheduled health checks and persisted check history.
 - [x] Add consecutive-failure alerts with acknowledgement and automatic resolution.
 - [x] Add a user-scoped dashboard summary API.
-- [ ] Add Docker support for local development.
+- [x] Add Docker support for local development.
 - [ ] Add automated tests for services and API endpoints.
 - [ ] Add external alert delivery via email, webhook, Slack, or Discord.
 - [ ] Add AWS deployment documentation.

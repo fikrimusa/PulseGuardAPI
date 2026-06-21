@@ -17,6 +17,7 @@
 appsettings.Development.json
 appsettings.Local.json
 secrets.json
+.env
 
 # Logs and temporary files
 *.log

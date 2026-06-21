@@ -1,0 +1,9 @@
+.git
+.vscode
+.idea
+bin
+obj
+README.md
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
