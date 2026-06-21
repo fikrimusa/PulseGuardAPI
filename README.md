@@ -198,6 +198,32 @@ To call the health endpoint from a terminal:
 curl http://localhost:5054/api/health
 ```
 
+### Run automated tests
+
+Run the backend test suite from the repository root:
+
+```bash
+dotnet test PulseGuard.sln
+```
+
+The tests use an in-memory database and cover authentication, monitor ownership, alert state transitions, dashboard aggregation, and basic API behavior without requiring PostgreSQL or Docker.
+
+The suite currently validates:
+
+- `GET /api/health` returns a successful response.
+- Registering and logging in a user returns a JWT access token.
+- Protected monitor endpoints reject requests without a JWT token.
+- A user cannot retrieve a monitor owned by another user.
+- Three consecutive failed checks create one `OPEN` alert; a later successful check resolves it.
+- Acknowledging an alert changes its status to `ACKNOWLEDGED` and records the acknowledgement time.
+- Dashboard totals and average response time are calculated from the current user's monitors, checks, and alerts only.
+
+For the name and result of each test, run:
+
+```bash
+dotnet test PulseGuard.sln --logger "console;verbosity=detailed"
+```
+
 ### Authenticate in Swagger
 
 1. Open `http://localhost:5054/swagger`.
@@ -244,7 +270,7 @@ Alert statuses are `OPEN`, `ACKNOWLEDGED`, and `RESOLVED`. Alert endpoints retur
 - [x] Add consecutive-failure alerts with acknowledgement and automatic resolution.
 - [x] Add a user-scoped dashboard summary API.
 - [x] Add Docker support for local development.
-- [ ] Add automated tests for services and API endpoints.
+- [x] Add automated tests for services and API endpoints.
 - [ ] Add external alert delivery via email, webhook, Slack, or Discord.
 - [ ] Add AWS deployment documentation.
 - [ ] Add GitHub Actions CI pipeline.

@@ -53,6 +53,7 @@ builder.Services.AddScoped<MonitorCheckRepository>();
 builder.Services.AddScoped<AlertRepository>();
 builder.Services.AddScoped<MonitorService>();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddSingleton<AlertStateService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -103,3 +104,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program
+{
+}

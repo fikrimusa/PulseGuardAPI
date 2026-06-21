@@ -1,0 +1,27 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulseGuard.Api", "PulseGuard.Api.csproj", "{99881804-06E7-4BDA-83D0-DE2EEA9FD050}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulseGuard.Api.Tests", "PulseGuard.Api.Tests\PulseGuard.Api.Tests.csproj", "{DBA58E70-07B6-4619-9594-1B8E18A5686E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{99881804-06E7-4BDA-83D0-DE2EEA9FD050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99881804-06E7-4BDA-83D0-DE2EEA9FD050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99881804-06E7-4BDA-83D0-DE2EEA9FD050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99881804-06E7-4BDA-83D0-DE2EEA9FD050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBA58E70-07B6-4619-9594-1B8E18A5686E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBA58E70-07B6-4619-9594-1B8E18A5686E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBA58E70-07B6-4619-9594-1B8E18A5686E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBA58E70-07B6-4619-9594-1B8E18A5686E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

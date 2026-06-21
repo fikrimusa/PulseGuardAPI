@@ -13,6 +13,7 @@ namespace PulseGuard.Api.Services;
 public sealed class HealthCheckWorker(
     IServiceScopeFactory scopeFactory,
     IHttpClientFactory httpClientFactory,
+    AlertStateService alertStateService,
     IOptions<HealthCheckWorkerSettings> settings,
     ILogger<HealthCheckWorker> logger) : BackgroundService
 {
@@ -122,66 +123,7 @@ public sealed class HealthCheckWorker(
             dbContext.MonitorChecks.Add(check);
 
             await dbContext.SaveChangesAsync(stoppingToken);
-            await UpdateAlertStateAsync(dbContext, monitor, check, stoppingToken);
+            await alertStateService.UpdateAsync(dbContext, monitor, check, stoppingToken);
         }
-    }
-
-    private static async Task UpdateAlertStateAsync(
-        AppDbContext dbContext,
-        MonitorModel monitor,
-        MonitorCheckModel check,
-        CancellationToken stoppingToken)
-    {
-        var activeAlert = await dbContext.Alerts
-            .SingleOrDefaultAsync(alert =>
-                alert.MonitorId == monitor.Id
-                && (alert.Status == AlertStatusModel.OPEN || alert.Status == AlertStatusModel.ACKNOWLEDGED),
-                stoppingToken);
-
-        if (check.IsSuccess)
-        {
-            if (activeAlert is not null)
-            {
-                activeAlert.Status = AlertStatusModel.RESOLVED;
-                activeAlert.ResolvedAt = check.CheckedAt;
-                await dbContext.SaveChangesAsync(stoppingToken);
-            }
-
-            return;
-        }
-
-        var recentChecks = await dbContext.MonitorChecks
-            .AsNoTracking()
-            .Where(result => result.MonitorId == monitor.Id)
-            .OrderByDescending(result => result.CheckedAt)
-            .Select(result => result.IsSuccess)
-            .ToListAsync(stoppingToken);
-        var failureCount = recentChecks.TakeWhile(isSuccess => !isSuccess).Count();
-
-        if (failureCount < 3)
-        {
-            return;
-        }
-
-        var message = $"Monitor failed {failureCount} consecutive checks. {check.ErrorMessage}";
-        if (activeAlert is null)
-        {
-            dbContext.Alerts.Add(new AlertModel
-            {
-                Id = Guid.NewGuid(),
-                MonitorId = monitor.Id,
-                CreatedAt = check.CheckedAt,
-                Status = AlertStatusModel.OPEN,
-                Message = message,
-                FailureCount = failureCount
-            });
-        }
-        else
-        {
-            activeAlert.Message = message;
-            activeAlert.FailureCount = failureCount;
-        }
-
-        await dbContext.SaveChangesAsync(stoppingToken);
     }
 }
